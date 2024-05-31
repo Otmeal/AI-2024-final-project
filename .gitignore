@@ -1,2 +1,4 @@
 DataDownloader/data
 DataDownloader/__pycache__
+
+data/*.csv
