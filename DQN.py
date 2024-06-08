@@ -66,7 +66,7 @@ class Net(nn.Module):
 
 class Agent:
     def __init__(
-        self, env, epsilon=10, learning_rate=0.0002, GAMMA=0.97, batch_size=32, capacity=10000
+        self, env, epsilon = 0.5, learning_rate=0.0002, GAMMA=0.97, batch_size=32, capacity=10000
     ):
         """
         The agent learning how to control the action of the cart pole.
@@ -78,7 +78,7 @@ class Agent:
             capacity: the size of the replay buffer/memory
         """
         self.env = env
-        self.n_actions = 2  # the number of actions
+        self.n_actions = 19  # the number of actions
         self.count = 0
 
         self.epsilon = epsilon
@@ -91,9 +91,8 @@ class Agent:
         self.evaluate_net = Net(self.n_actions)  # the evaluate network
         self.target_net = Net(self.n_actions)  # the target network
 
-        self.optimizer = torch.optim.Adam(
-            self.evaluate_net.parameters(), lr=self.learning_rate
-        )  # Adam is a method using to optimize the neural network
+        self.optimizer = torch.optim.Adam(self.evaluate_net.parameters(), lr=self.learning_rate)  
+        # Adam is a method using to optimize the neural network
 
     def learn(self):
         """
@@ -172,7 +171,7 @@ class Agent:
         Or return random action.
             """
             temp = np.random.random()
-            if temp < math.exp(-1*self.epsilon) or temp < 0.005:
+            if temp < self.epsilon:
                 return np.random.randint(self.n_actions)
             # forward the state to nn and find the argmax of the actions
             
@@ -189,7 +188,7 @@ def train(env):
         None (Don't need to return anything)
     """
     agent = Agent(env)
-    episode = 1000
+    episode = 5000
     rewards = []
     for i_episode in range(episode):
         state = env.reset()
@@ -216,6 +215,7 @@ def train(env):
                 break
             state = next_state
         print(i_episode, info)
+        agent.epsilon *= 0.99
     total_rewards.append(rewards)
 
 
@@ -236,8 +236,7 @@ def test(env):
         t = 0
         while True:
             tempstate = state
-            Q = testing_agent.target_net(
-                torch.FloatTensor(tempstate)).squeeze(0).detach()
+            Q = testing_agent.target_net(torch.FloatTensor(tempstate)).squeeze(0).detach()
             action = int(torch.argmax(Q).numpy())
             next_state, _, done, info = env.step(action)
             w.add_scalar('Profit', env._total_profit, t)
@@ -251,16 +250,16 @@ def test(env):
 
 
 if __name__ == "__main__":
-    env = gym.make('stocks-v0') 
+    env = gym.make('futures1-v0') 
     os.makedirs("./Tables", exist_ok=True)
 
     # training section:
-    # for i in range(1):
-    #     print(f"#{i + 1} training progress")
-    #     train(env)
+    for i in range(1):
+        print(f"#{i + 1} training progress")
+        train(env)
 
     # testing section:
-    test(env)
+    # test(env)
     # env.close()
 
     # os.makedirs("./Rewards", exist_ok=True)
