@@ -14,7 +14,8 @@ import time
 from torch.utils.tensorboard import SummaryWriter
 total_rewards = []
 
-INPUT_SIZE = 52
+K_LINE_NUM = 48
+INPUT_SIZE = K_LINE_NUM * 4 + 4
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 class replay_buffer:
@@ -277,9 +278,10 @@ if __name__ == "__main__":
     for i in range(1):
         time0 = time.time()
         print(f"#{i + 1} training progress")
-        train(env, 500)
+        train(env, 5000)
         time1 = time.time()
         print(f"Training time: {time1 - time0} seconds")
+        print ("Win rate: ", env.win_count ,"/", env.win_count + env.dead_count, f"({env.get_win_rate()})")
 
     # testing section:
     test(env)
