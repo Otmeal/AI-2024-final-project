@@ -43,7 +43,7 @@ class Net(nn.Module):
     The structure of the Neural Network calculating Q values of each state.
     """
 
-    def __init__(self,  num_actions, hidden_layer_size=600):
+    def __init__(self,  num_actions, hidden_layer_size=888):
         super(Net, self).__init__()
         self.input_state = INPUT_SIZE  # the dimension of state space
         self.num_actions = num_actions  # the dimension of action space
@@ -53,7 +53,12 @@ class Net(nn.Module):
         self.bn2 = nn.BatchNorm1d(hidden_layer_size)  # Batch normalization for hidden layer
         self.fc3 = nn.Linear(hidden_layer_size, hidden_layer_size)  # hidden layer
         self.bn3 = nn.BatchNorm1d(hidden_layer_size)  # Batch normalization for hidden layer
-        self.fc4 = nn.Linear(hidden_layer_size, num_actions)  # output layer
+        self.fc4 = nn.Linear(hidden_layer_size, hidden_layer_size)  # hidden layer
+        self.bn4 = nn.BatchNorm1d(hidden_layer_size)  # Batch normalization for hidden layer
+        self.fc5 = nn.Linear(hidden_layer_size, hidden_layer_size)  # hidden layer
+        self.bn5 = nn.BatchNorm1d(hidden_layer_size)  # Batch normalization for hidden layer
+        self.fc6 = nn.Linear(hidden_layer_size, num_actions)  # output layer
+
     def forward(self, states):
         """
         Forward the state to the neural network.
@@ -64,16 +69,19 @@ class Net(nn.Module):
         """
         if states.dim() == 1:
             states = states.unsqueeze(0)  # 添加 batch 維度
+        
         x = F.relu(self.bn1(self.fc1(states)))
         x = F.relu(self.bn2(self.fc2(x)))
         x = F.relu(self.bn3(self.fc3(x)))
-        q_values = self.fc4(x)
+        x = F.relu(self.bn4(self.fc4(x)))
+        x = F.relu(self.bn5(self.fc5(x)))
+        q_values = self.fc6(x)
         return q_values
 
 
 class Agent:
     def __init__(
-        self, env, epsilon = 0.9, learning_rate=0.5, GAMMA=0.999, batch_size=32, capacity=10000
+        self, env, epsilon = 0.9, learning_rate=0.5, GAMMA=0.999, batch_size=100, capacity=10000
     ):
         """
         The agent learning how to control the action of the cart pole.
@@ -282,6 +290,8 @@ if __name__ == "__main__":
         time1 = time.time()
         print(f"Training time: {time1 - time0} seconds")
         print ("Win rate: ", env.win_count ,"/", env.win_count + env.dead_count, f"({env.get_win_rate()})")
+        [profit, loss] = env.get_cumulative_profit_loss_ratio()
+        print("Profit Loss Ratio: ",f"{profit} : {loss}" )
 
     # testing section:
     test(env)
