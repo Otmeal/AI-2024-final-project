@@ -2,3 +2,6 @@ DataDownloader/data
 DataDownloader/__pycache__
 
 data/*.csv
+Reference
+Reference/*
+myenv

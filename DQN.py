@@ -10,10 +10,12 @@ import os
 from tqdm import tqdm
 import gym_futures_trading
 import math
+import time
 from torch.utils.tensorboard import SummaryWriter
 total_rewards = []
 
 INPUT_SIZE = 52
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 class replay_buffer:
     # store experience
@@ -40,15 +42,17 @@ class Net(nn.Module):
     The structure of the Neural Network calculating Q values of each state.
     """
 
-    def __init__(self,  num_actions, hidden_layer_size=256):
+    def __init__(self,  num_actions, hidden_layer_size=600):
         super(Net, self).__init__()
         self.input_state = INPUT_SIZE  # the dimension of state space
         self.num_actions = num_actions  # the dimension of action space
         self.fc1 = nn.Linear(self.input_state, hidden_layer_size)  # input layer
+        self.bn1 = nn.BatchNorm1d(hidden_layer_size)  # Batch normalization for input layer
         self.fc2 = nn.Linear(hidden_layer_size, hidden_layer_size)  # hidden layer
-        self.fc3 = nn.Linear(hidden_layer_size, hidden_layer_size)
+        self.bn2 = nn.BatchNorm1d(hidden_layer_size)  # Batch normalization for hidden layer
+        self.fc3 = nn.Linear(hidden_layer_size, hidden_layer_size)  # hidden layer
+        self.bn3 = nn.BatchNorm1d(hidden_layer_size)  # Batch normalization for hidden layer
         self.fc4 = nn.Linear(hidden_layer_size, num_actions)  # output layer
-
     def forward(self, states):
         """
         Forward the state to the neural network.
@@ -57,16 +61,18 @@ class Net(nn.Module):
         Return:
             q_values: a batch size of q_values
         """
-        x = F.relu(self.fc1(states))
-        x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
+        if states.dim() == 1:
+            states = states.unsqueeze(0)  # 添加 batch 維度
+        x = F.relu(self.bn1(self.fc1(states)))
+        x = F.relu(self.bn2(self.fc2(x)))
+        x = F.relu(self.bn3(self.fc3(x)))
         q_values = self.fc4(x)
         return q_values
 
 
 class Agent:
     def __init__(
-        self, env, epsilon = 0.5, learning_rate=0.0002, GAMMA=0.97, batch_size=32, capacity=10000
+        self, env, epsilon = 0.9, learning_rate=0.5, GAMMA=0.999, batch_size=32, capacity=10000
     ):
         """
         The agent learning how to control the action of the cart pole.
@@ -89,7 +95,9 @@ class Agent:
 
         self.buffer = replay_buffer(self.capacity)
         self.evaluate_net = Net(self.n_actions)  # the evaluate network
+        self.evaluate_net.to(device)
         self.target_net = Net(self.n_actions)  # the target network
+        self.target_net.to(device)
 
         self.optimizer = torch.optim.Adam(self.evaluate_net.parameters(), lr=self.learning_rate)  
         # Adam is a method using to optimize the neural network
@@ -117,19 +125,22 @@ class Agent:
         """
         if self.count % 10 == 0:
             self.target_net.load_state_dict(self.evaluate_net.state_dict())
-
+        
         # Begin your code
         """
         Sample trajectories of batch size from the replay buffer.
         Convert these sampled data into tensor.
         """
         states, actions, rewards, next_states, dones = self.buffer.sample(self.batch_size)
-        states = torch.tensor(np.array(states), dtype=torch.float)
-        actions = torch.tensor(np.array(actions), dtype=torch.int64).unsqueeze(-1)
-        rewards = torch.tensor(np.array(rewards), dtype=torch.float)
-        next_states = torch.tensor(np.array(next_states), dtype=torch.float)
-        done = torch.tensor(np.array(dones), dtype=torch.float)
+        states = torch.tensor(np.array(states), dtype=torch.float).to(device)
+        actions = torch.tensor(np.array(actions), dtype=torch.int64).unsqueeze(-1).to(device)
+        rewards = torch.tensor(np.array(rewards), dtype=torch.float).to(device)
+        next_states = torch.tensor(np.array(next_states), dtype=torch.float).to(device)
+        done = torch.tensor(np.array(dones), dtype=torch.float).to(device)
 
+
+        self.evaluate_net.train()
+        self.target_net.eval()
         """
         Forward the data to evaluate net and target net.
         q_eval is predicted values from evaluate network which is extracted based on action.
@@ -175,11 +186,18 @@ class Agent:
                 return np.random.randint(self.n_actions)
             # forward the state to nn and find the argmax of the actions
             
-            action = torch.argmax(self.evaluate_net(Tensor(state).reshape(INPUT_SIZE))).item()
+            # Ensure the state is 2D [batch_size, num_features]
+        state_tensor = torch.tensor(state, dtype=torch.float).to(device)
+        if state_tensor.dim() == 1:
+            state_tensor = state_tensor.unsqueeze(0)
+
+        self.evaluate_net.eval()
+
+        action = torch.argmax(self.evaluate_net(state_tensor)).item()
             # End your code
         return action
 
-def train(env):
+def train(env, episode=500):
     """
     Train the agent on the given environment.
     Paramenters:
@@ -188,7 +206,6 @@ def train(env):
         None (Don't need to return anything)
     """
     agent = Agent(env)
-    episode = 5000
     rewards = []
     for i_episode in range(episode):
         state = env.reset()
@@ -215,7 +232,9 @@ def train(env):
                 break
             state = next_state
         print(i_episode, info)
-        agent.epsilon *= 0.99
+        if(i_episode % math.ceil(episode/500) == 0):
+            agent.epsilon *= (0.05/agent.epsilon) ** (1/500)
+            agent.learning_rate *= (0.002/agent.learning_rate) ** (1/500)
     total_rewards.append(rewards)
 
 
@@ -229,17 +248,18 @@ def test(env):
     """
     rewards = []
     testing_agent = Agent(env)
-    testing_agent.target_net.load_state_dict(torch.load("pretrained/DQN.pt"))
-    w = SummaryWriter('tb_record_1/comp_profit_train/DQN')
+    testing_agent.target_net.load_state_dict(torch.load("./Tables/DQN.pt"))
+    os.makedirs("./tb_record_1/comp_profit_train/DQN", exist_ok=True)
+    w = SummaryWriter('./tb_record_1/comp_profit_train/DQN')
     for _ in range(1):
         state = env.reset()
         t = 0
         while True:
             tempstate = state
-            Q = testing_agent.target_net(torch.FloatTensor(tempstate)).squeeze(0).detach()
-            action = int(torch.argmax(Q).numpy())
+            Q = testing_agent.target_net(torch.FloatTensor(tempstate).to(device)).squeeze(0).detach()
+            action = int(torch.argmax(Q).cpu().numpy())
             next_state, _, done, info = env.step(action)
-            w.add_scalar('Profit', env._total_profit, t)
+            w.add_scalar('Profit', env._total_asset, t)
             t+=1
             if done:
                 print(info)
@@ -255,12 +275,15 @@ if __name__ == "__main__":
 
     # training section:
     for i in range(1):
+        time0 = time.time()
         print(f"#{i + 1} training progress")
-        train(env)
+        train(env, 500)
+        time1 = time.time()
+        print(f"Training time: {time1 - time0} seconds")
 
     # testing section:
-    # test(env)
-    # env.close()
+    test(env)
+    env.close()
 
-    # os.makedirs("./Rewards", exist_ok=True)
-    # np.save("./Rewards/DQN_rewards.npy", np.array(total_rewards))
+    os.makedirs("./Rewards", exist_ok=True)
+    np.save("./Rewards/DQN_rewards.npy", np.array(total_rewards))
