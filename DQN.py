@@ -309,9 +309,20 @@ def test(env):
     # plt.figure()
     # plt.plot(env.prices, label='prices')
     ax1.plot(range(0, len(env.prices)), env.prices, label='prices', color='blue')
+    ax1.set_ylabel('prices', color='blue')
     ax2.plot(profit_rate_tick, profit_rate, label='profit_rate', color='red')
+    ax2.set_ylabel('profit_rate', color='red')
     # plt.plot(profit_rate, label='profit_rate')
     # len(self.prices
+    # 標註最後一個 profit_rate 的值
+    last_tick = profit_rate_tick[-1]
+    last_profit_rate = profit_rate[-1]
+    ax2.annotate(
+        f'{int(last_profit_rate)}', 
+        xy=(last_tick, last_profit_rate), 
+        xytext=(last_tick + 1, last_profit_rate),  # 調整文字標註的位置
+        arrowprops=dict(facecolor='red', shrink=0.05)
+    )
     plt.title('prices & profit_rate')
     fig.legend(loc="upper left", bbox_to_anchor=(0.1,0.9))
     #plt.xlabel('time')
