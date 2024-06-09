@@ -262,30 +262,40 @@ def test(env):
     testing_agent = Agent(env)
     testing_agent.target_net.eval()
     # 从保存的文件中加载预训练的目标网络参数
-    testing_agent.target_net.load_state_dict(torch.load("./Tables/DQN-win-dead-3-5000.pt", map_location = device))
+    testing_agent.target_net.load_state_dict(torch.load("./Tables/DQN-win-dead-1-500.pt", map_location = device))
     # 创建目录（如果不存在）用于存储 TensorBoard 记录
     os.makedirs("./tb_record_1/comp_profit_train/DQN", exist_ok=True)
     # 初始化 TensorBoard 记录器
     w = SummaryWriter('./tb_record_1/comp_profit_train/DQN')
-    for _ in range(1):
-        state = env.reset()
+    start_tick = K_LINE_NUM
+    while True:
+        if(start_tick == len(env.prices) - 2): 
+            break
+        state = env.reset(start_tick = start_tick)
         t = 0
         while True:
             tempstate = state
-            # print(state.shape)
+            
             # 将状态转换为浮点张量，并移至 GPU（如果可用）
             Q = testing_agent.target_net(torch.FloatTensor(tempstate).to(device)).squeeze(0).detach()
             # 选择具有最大 Q 值的动作
             action = int(torch.argmax(Q).cpu().numpy())
             # 在环境中执行动作，获得下一状态、奖励、是否结束以及额外信息
             next_state, _, done, info = env.step(action)
-            print(info)
+            # print(info)
             # 将当前总资产记录到 TensorBoard
             w.add_scalar('Profit', env.get_total_asset(), t)
             t+=1
             # 如果回合结束，打印信息并退出循环
             if done:
+                env.render()
+                info['total_reward'] = int(info['total_reward'])
+                info['total_asset'] = int(info['total_asset'])
+                info['cash'] = int(info['cash'])
+                info['long_position'] = int(info['long_position'])
+                info['unrealized_profit'] = int(info['unrealized_profit'])
                 print(info)
+                start_tick = info["done_tick"]
                 break
             state = next_state
 
@@ -298,15 +308,15 @@ if __name__ == "__main__":
 
     # training section:
 
-    for i in range(1):
-        time0 = time.time()
-        print(f"#{i + 1} training progress")
-        train(env, 500)
-        time1 = time.time()
-        print(f"Training time: {time1 - time0} seconds")
-        print ("Win rate: ", env.win_count ,"/", env.win_count + env.dead_count, f"({env.get_win_rate()})")
-        [profit, loss] = env.get_cumulative_profit_loss_ratio()
-        print("Profit Loss Ratio: ",f"{profit} : {loss}" )
+    # for i in range(1):
+    #     time0 = time.time()
+    #     print(f"#{i + 1} training progress")
+    #     train(env, 500)
+    #     time1 = time.time()
+    #     print(f"Training time: {time1 - time0} seconds")
+    #     print ("Win rate: ", env.win_count ,"/", env.win_count + env.dead_count, f"({env.get_win_rate()})")
+    #     [profit, loss] = env.get_cumulative_profit_loss_ratio()
+    #     print("Profit Loss Ratio: ",f"{profit} : {loss}" )
 
 
     # testing section:
