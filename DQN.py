@@ -43,7 +43,7 @@ class Net(nn.Module):
     The structure of the Neural Network calculating Q values of each state.
     """
 
-    def __init__(self,  num_actions, hidden_layer_size=888):
+    def __init__(self,  num_actions, hidden_layer_size=2000):
         super(Net, self).__init__()
         self.input_state = INPUT_SIZE  # the dimension of state space
         self.num_actions = num_actions  # the dimension of action space
@@ -83,7 +83,7 @@ class Net(nn.Module):
 
 class Agent:
     def __init__(
-        self, env, epsilon = 0.9, learning_rate=0.5, GAMMA=0.999, batch_size=32, capacity=10000
+        self, env, epsilon = 0.9, learning_rate=0.5, GAMMA=0.99, batch_size=100, capacity=1000
     ):
         """
         The agent learning how to control the action of the cart pole.
@@ -308,15 +308,15 @@ if __name__ == "__main__":
 
     # training section:
 
-    # for i in range(1):
-    #     time0 = time.time()
-    #     print(f"#{i + 1} training progress")
-    #     train(env, 500)
-    #     time1 = time.time()
-    #     print(f"Training time: {time1 - time0} seconds")
-    #     print ("Win rate: ", env.win_count ,"/", env.win_count + env.dead_count, f"({env.get_win_rate()})")
-    #     [profit, loss] = env.get_cumulative_profit_loss_ratio()
-    #     print("Profit Loss Ratio: ",f"{profit} : {loss}" )
+    for i in range(1):
+        time0 = time.time()
+        print(f"#{i + 1} training progress")
+        train(env, 500)
+        time1 = time.time()
+        print(f"Training time: {time1 - time0} seconds")
+        print ("Win rate: ", env.win_count ,"/", env.win_count + env.dead_count, f"({env.get_win_rate()})")
+        [profit, loss] = env.get_cumulative_profit_loss_ratio()
+        print("Profit Loss Ratio: ",f"{profit} : {loss}" )
 
 
     # testing section:
