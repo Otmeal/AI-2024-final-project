@@ -15,7 +15,7 @@ from torch.utils.tensorboard import SummaryWriter
 total_rewards = []
 
 K_LINE_NUM = 48
-INPUT_SIZE = K_LINE_NUM * 4 + 4
+INPUT_SIZE = K_LINE_NUM * 5 + 4
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 class replay_buffer:
@@ -81,7 +81,7 @@ class Net(nn.Module):
 
 class Agent:
     def __init__(
-        self, env, epsilon = 0.9, learning_rate=0.5, GAMMA=0.999, batch_size=100, capacity=10000
+        self, env, epsilon = 0.9, learning_rate=0.5, GAMMA=0.999, batch_size=32, capacity=10000
     ):
         """
         The agent learning how to control the action of the cart pole.
@@ -286,7 +286,7 @@ if __name__ == "__main__":
     for i in range(1):
         time0 = time.time()
         print(f"#{i + 1} training progress")
-        train(env, 5000)
+        train(env, 500)
         time1 = time.time()
         print(f"Training time: {time1 - time0} seconds")
         print ("Win rate: ", env.win_count ,"/", env.win_count + env.dead_count, f"({env.get_win_rate()})")
