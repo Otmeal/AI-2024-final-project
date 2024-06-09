@@ -12,6 +12,8 @@ import gym_futures_trading
 import math
 import time
 from torch.utils.tensorboard import SummaryWriter
+import matplotlib.pyplot as plt
+
 total_rewards = []
 
 K_LINE_NUM = 48
@@ -262,14 +264,16 @@ def test(env):
     testing_agent = Agent(env)
     testing_agent.target_net.eval()
     # 从保存的文件中加载预训练的目标网络参数
-    testing_agent.target_net.load_state_dict(torch.load("./Tables/DQN-win-dead-1-500.pt", map_location = device))
+    testing_agent.target_net.load_state_dict(torch.load("./Tables/DQN-3-500-2000hiden.pt", map_location = device))
     # 创建目录（如果不存在）用于存储 TensorBoard 记录
     os.makedirs("./tb_record_1/comp_profit_train/DQN", exist_ok=True)
     # 初始化 TensorBoard 记录器
     w = SummaryWriter('./tb_record_1/comp_profit_train/DQN')
     start_tick = K_LINE_NUM
+    profit_rate = []
+    profit_rate_tick = []
     while True:
-        if(start_tick == len(env.prices) - 2): 
+        if(start_tick == len(env.prices) - 4): 
             break
         state = env.reset(start_tick = start_tick)
         t = 0
@@ -288,7 +292,9 @@ def test(env):
             t+=1
             # 如果回合结束，打印信息并退出循环
             if done:
-                env.render()
+                # env.render()
+                profit_rate.append(env.get_profit_rate())
+                profit_rate_tick.append(info["done_tick"])
                 info['total_reward'] = int(info['total_reward'])
                 info['total_asset'] = int(info['total_asset'])
                 info['cash'] = int(info['cash'])
@@ -298,25 +304,39 @@ def test(env):
                 start_tick = info["done_tick"]
                 break
             state = next_state
+    fig, ax1 = plt.subplots()
+    ax2 = ax1.twinx()
+    # plt.figure()
+    # plt.plot(env.prices, label='prices')
+    ax1.plot(range(0, len(env.prices)), env.prices, label='prices', color='blue')
+    ax2.plot(profit_rate_tick, profit_rate, label='profit_rate', color='red')
+    # plt.plot(profit_rate, label='profit_rate')
+    # len(self.prices
+    plt.title('prices & profit_rate')
+    fig.legend(loc="upper left", bbox_to_anchor=(0.1,0.9))
+    #plt.xlabel('time')
+    #plt.ylabel('value')
+    #plt.legend()
+    plt.show()
 
     
 
 
 if __name__ == "__main__":
-    env = gym.make('futures1-v0') 
+    env = gym.make('futures4-v0') 
     os.makedirs("./Tables", exist_ok=True)
 
     # training section:
 
-    for i in range(1):
-        time0 = time.time()
-        print(f"#{i + 1} training progress")
-        train(env, 500)
-        time1 = time.time()
-        print(f"Training time: {time1 - time0} seconds")
-        print ("Win rate: ", env.win_count ,"/", env.win_count + env.dead_count, f"({env.get_win_rate()})")
-        [profit, loss] = env.get_cumulative_profit_loss_ratio()
-        print("Profit Loss Ratio: ",f"{profit} : {loss}" )
+    # for i in range(1):
+    #     time0 = time.time()
+    #     print(f"#{i + 1} training progress")
+    #     train(env, 500)
+    #     time1 = time.time()
+    #     print(f"Training time: {time1 - time0} seconds")
+    #     print ("Win rate: ", env.win_count ,"/", env.win_count + env.dead_count, f"({env.get_win_rate()})")
+    #     [profit, loss] = env.get_cumulative_profit_loss_ratio()
+    #     print("Profit Loss Ratio: ",f"{profit} : {loss}" )
 
 
     # testing section:
