@@ -101,7 +101,9 @@ class Agent:
         self.count = 0
 
         self.epsilon = epsilon
+        self.epsilon_decay_rate = (0.05/epsilon) ** (1/500)
         self.learning_rate = learning_rate
+        self.learning_rate_decay_rate = (0.002/learning_rate) ** (1/500)   
         self.gamma = GAMMA
         self.batch_size = batch_size
         self.capacity = capacity
@@ -237,7 +239,7 @@ def train(env, episode=1000):
             agent.buffer.insert(tempstate1, int(action), reward, tempstate2, int(done))
 
             if len(agent.buffer) >= 200:
-                # every 100 step, learn from replay_buffer 
+                # every 100 step, learn fro/m replay_buffer 
                 agent.learn()
             if done:
                 # end episode
@@ -245,9 +247,10 @@ def train(env, episode=1000):
                 break
             state = next_state
         print(i_episode, info)
+        
         if(i_episode % math.ceil(episode/500) == 0):
-            agent.epsilon *= (0.05/agent.epsilon) ** (1/500)
-            agent.learning_rate *= (0.002/agent.learning_rate) ** (1/500)
+            agent.epsilon *= agent.epsilon_decay_rate
+            agent.learning_rate *= agent.learning_rate_decay_rate
     total_rewards.append(rewards)
 
 
@@ -336,7 +339,7 @@ def test(env):
 
 
 if __name__ == "__main__":
-    env = gym.make('futures2-v0') 
+    env = gym.make('futures1-v0') 
     os.makedirs("./Tables", exist_ok=True)
 
     # training section:
@@ -352,7 +355,6 @@ if __name__ == "__main__":
         [profit, loss] = env.get_cumulative_profit_loss_ratio()
         print("Profit Loss Ratio: ",f"{profit} : {loss}" )
         print ("Final profit rate: ", env.get_profit_rate())
-
 
 
     # testing section:
