@@ -28,7 +28,3 @@ python .\data_utils\process_zipped_data.py
 ```
 python3 plain_plot.py ../data/{target}
 ```
-
-## Training
-
-tb_record_1 should be clear before training

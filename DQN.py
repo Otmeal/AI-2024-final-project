@@ -85,7 +85,7 @@ class Net(nn.Module):
 
 class Agent:
     def __init__(
-        self, env, epsilon = 0.9, learning_rate=0.5, GAMMA=0.99, batch_size=100, capacity=1000
+        self, env, epsilon = 0.9, learning_rate=0.5, GAMMA=0.99, batch_size=200, capacity=2000
     ):
         """
         The agent learning how to control the action of the cart pole.
@@ -101,7 +101,9 @@ class Agent:
         self.count = 0
 
         self.epsilon = epsilon
+        self.epsilon_decay_rate = (0.05/epsilon) ** (1/500)
         self.learning_rate = learning_rate
+        self.learning_rate_decay_rate = (0.002/learning_rate) ** (1/500)   
         self.gamma = GAMMA
         self.batch_size = batch_size
         self.capacity = capacity
@@ -210,7 +212,7 @@ class Agent:
             # End your code
         return action
 
-def train(env, episode=500):
+def train(env, episode=1000):
     """
     Train the agent on the given environment.
     Paramenters:
@@ -236,8 +238,8 @@ def train(env, episode=500):
             next_state = next_state
             agent.buffer.insert(tempstate1, int(action), reward, tempstate2, int(done))
 
-            if len(agent.buffer) >= 100:
-                # every 100 step, learn from replay_buffer 
+            if len(agent.buffer) >= 200:
+                # every 100 step, learn fro/m replay_buffer 
                 agent.learn()
             if done:
                 # end episode
@@ -245,9 +247,10 @@ def train(env, episode=500):
                 break
             state = next_state
         print(i_episode, info)
+        
         if(i_episode % math.ceil(episode/500) == 0):
-            agent.epsilon *= (0.05/agent.epsilon) ** (1/500)
-            agent.learning_rate *= (0.002/agent.learning_rate) ** (1/500)
+            agent.epsilon *= agent.epsilon_decay_rate
+            agent.learning_rate *= agent.learning_rate_decay_rate
     total_rewards.append(rewards)
 
 
@@ -336,20 +339,22 @@ def test(env):
 
 
 if __name__ == "__main__":
-    env = gym.make('futures2-v0') 
+    env = gym.make('futures1-v0') 
     os.makedirs("./Tables", exist_ok=True)
 
     # training section:
 
-    # for i in range(1):
-    #     time0 = time.time()
-    #     print(f"#{i + 1} training progress")
-    #     train(env, 500)
-    #     time1 = time.time()
-    #     print(f"Training time: {time1 - time0} seconds")
-    #     print ("Win rate: ", env.win_count ,"/", env.win_count + env.dead_count, f"({env.get_win_rate()})")
-    #     [profit, loss] = env.get_cumulative_profit_loss_ratio()
-    #     print("Profit Loss Ratio: ",f"{profit} : {loss}" )
+
+    for i in range(1):
+        time0 = time.time()
+        print(f"#{i + 1} training progress")
+        train(env, 1000)
+        time1 = time.time()
+        print(f"Training time: {time1 - time0} seconds")
+        print ("Win rate: ", env.win_count ,"/", env.win_count + env.dead_count, f"({env.get_win_rate()})")
+        [profit, loss] = env.get_cumulative_profit_loss_ratio()
+        print("Profit Loss Ratio: ",f"{profit} : {loss}" )
+        print ("Final profit rate: ", env.get_profit_rate())
 
 
     # testing section:
