@@ -254,10 +254,12 @@ def train(env, episode=200):
                 break
             state = next_state
         print(i_episode, info)
-        
+
+
         if(i_episode % math.ceil(episode/500) == 0):
             agent.epsilon *= agent.epsilon_decay_rate
             agent.learning_rate *= agent.learning_rate_decay_rate
+        print("epsilon: ", agent.epsilon, "learning_rate: ", agent.learning_rate)
     total_rewards.append(rewards)
 
 
