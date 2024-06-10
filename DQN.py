@@ -264,7 +264,7 @@ def test(env):
     testing_agent = Agent(env)
     testing_agent.target_net.eval()
     # 从保存的文件中加载预训练的目标网络参数
-    testing_agent.target_net.load_state_dict(torch.load("./Tables/DQN-3-500-2000hiden.pt", map_location = device))
+    testing_agent.target_net.load_state_dict(torch.load("./Tables/DQN-1.2-1000ep-2000hidden.pt", map_location = device))
     # 创建目录（如果不存在）用于存储 TensorBoard 记录
     os.makedirs("./tb_record_1/comp_profit_train/DQN", exist_ok=True)
     # 初始化 TensorBoard 记录器
@@ -285,7 +285,9 @@ def test(env):
             # 选择具有最大 Q 值的动作
             action = int(torch.argmax(Q).cpu().numpy())
             # 在环境中执行动作，获得下一状态、奖励、是否结束以及额外信息
+            # print(action)
             next_state, _, done, info = env.step(action)
+
             # print(info)
             # 将当前总资产记录到 TensorBoard
             w.add_scalar('Profit', env.get_total_asset(), t)
@@ -334,7 +336,7 @@ def test(env):
 
 
 if __name__ == "__main__":
-    env = gym.make('futures4-v0') 
+    env = gym.make('futures2-v0') 
     os.makedirs("./Tables", exist_ok=True)
 
     # training section:

@@ -104,6 +104,8 @@ class ActorCritic:
         critic_loss.backward()  # 计算价值网络的梯度
         self.actor_optimizer.step()  # 更新策略网络的参数
         self.critic_optimizer.step()  # 更新价值网络的参数
+        torch.save(self.actor.state_dict(), "./Tables/AC_actor.pt")
+        torch.save(self.critic.state_dict(), "./Tables/AC_critic.pt")
 
 if __name__ == "__main__":
     actor_lr = 1e-3
@@ -114,7 +116,7 @@ if __name__ == "__main__":
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         
     
-    env = gym.make('futures4-v0') 
+    env = gym.make('futures1-v0') 
     env.seed(0)
     torch.manual_seed(0)
     state_dim = env.observation_space.shape[0]
