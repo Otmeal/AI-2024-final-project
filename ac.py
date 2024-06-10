@@ -128,6 +128,7 @@ def test(env, agent):
     start_tick = K_LINE_NUM
     profit_rate = []
     profit_rate_tick = []
+    unrealized_profit = []
     while True:
         if(start_tick == len(env.prices) - 4): 
             break
@@ -143,34 +144,45 @@ def test(env, agent):
             # action = agent.take_action(state)
             # 在环境中执行动作，获得下一状态、奖励、是否结束以及额外信息
             # print(action)
+            # if t <=100:
+            #     next_state, _, done, info = env.step(15)
+            # else:
+            #     next_state, _, done, info = env.step(9)
             next_state, _, done, info = env.step(15)
 
-            print(info)
+            # print(info)
             # 将当前总资产记录到 TensorBoard
             w.add_scalar('Profit', env.get_total_asset(), t)
             t+=1
+            profit_rate.append(env.get_profit_rate())
+            unrealized_profit.append(int(info['unrealized_profit']))
+            profit_rate_tick.append(info["done_tick"])
             # 如果回合结束，打印信息并退出循环
             if done:
                 # env.render()
-                profit_rate.append(env.get_profit_rate())
-                profit_rate_tick.append(info["done_tick"])
+                #profit_rate.append(env.get_profit_rate())
+                # profit_rate.append(int(info['unrealized_profit']))
+                # profit_rate_tick.append(info["done_tick"])
                 info['total_reward'] = int(info['total_reward'])
                 info['total_asset'] = int(info['total_asset'])
                 info['cash'] = int(info['cash'])
                 info['long_position'] = int(info['long_position'])
                 info['unrealized_profit'] = int(info['unrealized_profit'])
-                # print(info)
+                print(info)
                 start_tick = info["done_tick"]
                 break
             state = next_state
     fig, ax1 = plt.subplots()
     ax2 = ax1.twinx()
+    ax3 = ax1.twinx()
     # plt.figure()
     # plt.plot(env.prices, label='prices')
     ax1.plot(range(0, len(env.prices)), env.prices, label='prices', color='blue')
     ax1.set_ylabel('prices', color='blue')
     ax2.plot(profit_rate_tick, profit_rate, label='profit_rate', color='red')
     ax2.set_ylabel('profit_rate', color='red')
+    # ax3.plot(profit_rate_tick, unrealized_profit, label='unrealized_profit', color='green')
+
     # plt.plot(profit_rate, label='profit_rate')
     # len(self.prices
     # 標註最後一個 profit_rate 的值
