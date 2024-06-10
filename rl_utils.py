@@ -39,7 +39,7 @@ def train_on_policy_agent(env, agent, num_episodes):
                 done = False
                 while not done:
                     action = agent.take_action(state)
-                    next_state, reward, done, _ = env.step(action)
+                    next_state, reward, done, info = env.step(action)
                     transition_dict['states'].append(state)
                     transition_dict['actions'].append(action)
                     transition_dict['next_states'].append(next_state)
@@ -48,6 +48,7 @@ def train_on_policy_agent(env, agent, num_episodes):
                     state = next_state
                     episode_return += reward # 累計當前回合的總回報
                 return_list.append(episode_return)
+                # print(info)
                 agent.update(transition_dict)
                 if (i_episode+1) % 10 == 0:
                     pbar.set_postfix({'episode': '%d' % (num_episodes/10 * i + i_episode+1), 'return': '%.3f' % np.mean(return_list[-10:])})
