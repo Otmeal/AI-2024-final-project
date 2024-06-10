@@ -85,7 +85,7 @@ class Net(nn.Module):
 
 class Agent:
     def __init__(
-        self, env, epsilon = 0.9, learning_rate=0.5, GAMMA=0.99, batch_size=200, capacity=2000
+        self, env, epsilon = 0.5, learning_rate=0.2, GAMMA=0.99, batch_size=200, capacity=2000
     ):
         """
         The agent learning how to control the action of the cart pole.
@@ -247,10 +247,12 @@ def train(env, episode=1000):
                 break
             state = next_state
         print(i_episode, info)
-        
+
+
         if(i_episode % math.ceil(episode/500) == 0):
             agent.epsilon *= agent.epsilon_decay_rate
             agent.learning_rate *= agent.learning_rate_decay_rate
+        print("epsilon: ", agent.epsilon, "learning_rate: ", agent.learning_rate)
     total_rewards.append(rewards)
 
 
