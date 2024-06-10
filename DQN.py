@@ -85,7 +85,7 @@ class Net(nn.Module):
 
 class Agent:
     def __init__(
-        self, env, epsilon = 0.9, learning_rate=0.5, GAMMA=0.99, batch_size=200, capacity=2000
+        self, env, epsilon = 0.5, learning_rate=0.01, GAMMA=0.99, batch_size=32, capacity=2000
     ):
         """
         The agent learning how to control the action of the cart pole.
@@ -212,7 +212,7 @@ class Agent:
             # End your code
         return action
 
-def train(env, episode=1000):
+def train(env, episode=200):
     """
     Train the agent on the given environment.
     Paramenters:
@@ -220,7 +220,14 @@ def train(env, episode=1000):
     Returns:
         None (Don't need to return anything)
     """
+
+
     agent = Agent(env)
+    # agent.target_net.eval()
+    # # 从保存的文件中加载预训练的目标网络参数
+    # agent.target_net.load_state_dict(torch.load("./Tables/DQN-3AAA.pt", map_location = device))
+
+
     rewards = []
     for i_episode in range(episode):
         state = env.reset()
@@ -267,11 +274,7 @@ def test(env):
     testing_agent = Agent(env)
     testing_agent.target_net.eval()
     # 从保存的文件中加载预训练的目标网络参数
-    testing_agent.target_net.load_state_dict(torch.load("./Tables/DQN-1.2-1000ep-2000hidden.pt", map_location = device))
-    # 创建目录（如果不存在）用于存储 TensorBoard 记录
-    os.makedirs("./tb_record_1/comp_profit_train/DQN", exist_ok=True)
-    # 初始化 TensorBoard 记录器
-    w = SummaryWriter('./tb_record_1/comp_profit_train/DQN')
+    testing_agent.target_net.load_state_dict(torch.load("./Tables/DQN.pt", map_location = device))
     start_tick = K_LINE_NUM
     profit_rate = []
     profit_rate_tick = []
@@ -292,8 +295,6 @@ def test(env):
             next_state, _, done, info = env.step(action)
 
             # print(info)
-            # 将当前总资产记录到 TensorBoard
-            w.add_scalar('Profit', env.get_total_asset(), t)
             t+=1
             # 如果回合结束，打印信息并退出循环
             if done:
@@ -339,27 +340,25 @@ def test(env):
 
 
 if __name__ == "__main__":
-    env = gym.make('futures1-v0') 
+    env = gym.make('futures3-v0') 
     os.makedirs("./Tables", exist_ok=True)
 
     # training section:
 
 
-    for i in range(1):
-        time0 = time.time()
-        print(f"#{i + 1} training progress")
-        train(env, 1000)
-        time1 = time.time()
-        print(f"Training time: {time1 - time0} seconds")
-        print ("Win rate: ", env.win_count ,"/", env.win_count + env.dead_count, f"({env.get_win_rate()})")
-        [profit, loss] = env.get_cumulative_profit_loss_ratio()
-        print("Profit Loss Ratio: ",f"{profit} : {loss}" )
-        print ("Final profit rate: ", env.get_profit_rate())
+    # for i in range(1):
+    #     time0 = time.time()
+    #     print(f"#{i + 1} training progress")
+    #     train(env, 150)
+    #     time1 = time.time()
+    #     print(f"Training time: {time1 - time0} seconds")
+    #     print ("Win rate: ", env.win_count ,"/", env.win_count + env.dead_count, f"({env.get_win_rate()})")
+    #     [profit, loss] = env.get_cumulative_profit_loss_ratio()
+    #     print("Profit Loss Ratio: ",f"{profit} : {loss}" )
+    #     print ("Final profit rate: ", env.get_profit_rate())
 
 
     # testing section:
     test(env)
     env.close()
 
-    os.makedirs("./Rewards", exist_ok=True)
-    np.save("./Rewards/DQN_rewards.npy", np.array(total_rewards))
