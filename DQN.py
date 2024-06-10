@@ -85,7 +85,7 @@ class Net(nn.Module):
 
 class Agent:
     def __init__(
-        self, env, epsilon = 0.9, learning_rate=0.5, GAMMA=0.99, batch_size=100, capacity=1000
+        self, env, epsilon = 0.9, learning_rate=0.5, GAMMA=0.99, batch_size=200, capacity=2000
     ):
         """
         The agent learning how to control the action of the cart pole.
@@ -210,7 +210,7 @@ class Agent:
             # End your code
         return action
 
-def train(env, episode=500):
+def train(env, episode=1000):
     """
     Train the agent on the given environment.
     Paramenters:
@@ -236,7 +236,7 @@ def train(env, episode=500):
             next_state = next_state
             agent.buffer.insert(tempstate1, int(action), reward, tempstate2, int(done))
 
-            if len(agent.buffer) >= 100:
+            if len(agent.buffer) >= 200:
                 # every 100 step, learn from replay_buffer 
                 agent.learn()
             if done:
@@ -339,15 +339,18 @@ if __name__ == "__main__":
 
     # training section:
 
-    # for i in range(1):
-    #     time0 = time.time()
-    #     print(f"#{i + 1} training progress")
-    #     train(env, 500)
-    #     time1 = time.time()
-    #     print(f"Training time: {time1 - time0} seconds")
-    #     print ("Win rate: ", env.win_count ,"/", env.win_count + env.dead_count, f"({env.get_win_rate()})")
-    #     [profit, loss] = env.get_cumulative_profit_loss_ratio()
-    #     print("Profit Loss Ratio: ",f"{profit} : {loss}" )
+
+    for i in range(1):
+        time0 = time.time()
+        print(f"#{i + 1} training progress")
+        train(env, 1000)
+        time1 = time.time()
+        print(f"Training time: {time1 - time0} seconds")
+        print ("Win rate: ", env.win_count ,"/", env.win_count + env.dead_count, f"({env.get_win_rate()})")
+        [profit, loss] = env.get_cumulative_profit_loss_ratio()
+        print("Profit Loss Ratio: ",f"{profit} : {loss}" )
+        print ("Final profit rate: ", env.get_profit_rate())
+
 
 
     # testing section:
