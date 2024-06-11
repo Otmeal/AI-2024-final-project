@@ -13,7 +13,9 @@ Note that for the gym-futures-trading package, since it is located at a local pa
 
 ## Test model
 In `DQN.py`,
+
 If you want to test the trained model, please remember to comment out the training section.
+
 If you want to test different months, please modify
 ```
 env = gym.make('futures3-v0')
