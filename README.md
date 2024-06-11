@@ -20,6 +20,7 @@ If you want to test different months, please modify
 ```
 env = gym.make('futures3-v0')  # Test in March
 ```
+or
 ```
 env = gym.make('futures1-v0')  # Test in January
 ```
