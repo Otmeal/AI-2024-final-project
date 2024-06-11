@@ -8,9 +8,8 @@
 ```
 pip install -r requirements.txt
 ```
-Please download the environment we created from https://github.com/leafoliage/gym-futures-trading/tree/dev
+Please also clone the environment we created from https://github.com/leafoliage/gym-futures-trading/tree/dev
 
-Note that for the gym-futures-trading package, since it is located at a local path, you may need to install it manually or specify the exact local path.
 
 ## Test model
 In `DQN.py`,
