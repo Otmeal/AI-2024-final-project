@@ -24,6 +24,8 @@ or
 ```
 env = gym.make('futures1-v0')  # Test in January
 ```
+Please note that we only have data from January to April.
+
 ## Data source
 
 We get the data from [Binance API](https://github.com/binance/binance-public-data)
