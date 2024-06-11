@@ -18,7 +18,7 @@ If you want to test the trained model, please remember to comment out the traini
 
 If you want to test different months, please modify
 ```
-env = gym.make('futures3-v0')
+env = gym.make('futures3-v0')  # Test in March
 ```
 ## Data source
 
