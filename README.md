@@ -8,8 +8,28 @@
 ```
 pip install -r requirements.txt
 ```
+Please also clone the environment we created from https://github.com/leafoliage/gym-futures-trading/tree/dev
 
-Note that for the gym-futures-trading package, since it is located at a local path, you may need to install it manually or specify the exact local path.
+
+## Test model
+In `DQN.py`,
+
+If you want to test the trained model, please remember to comment out the training section.
+
+If you want to test different months, please modify
+```
+env = gym.make('futures3-v0')  # Test in March
+```
+or
+```
+env = gym.make('futures1-v0')  # Test in January
+```
+Please note that we only have data from January to April.
+
+If you want to test different model, just change the file path in test function.
+```
+test(env, "./Tables/DQN_GG.pt")
+```
 
 ## Data source
 
