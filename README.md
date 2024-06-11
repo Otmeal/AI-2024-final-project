@@ -26,6 +26,11 @@ env = gym.make('futures1-v0')  # Test in January
 ```
 Please note that we only have data from January to April.
 
+If you want to test different model, just change the file path in test function.
+```
+test(env, "./Tables/DQN_GG.pt")
+```
+
 ## Data source
 
 We get the data from [Binance API](https://github.com/binance/binance-public-data)
