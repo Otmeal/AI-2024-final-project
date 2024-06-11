@@ -45,7 +45,7 @@ class Net(nn.Module):
     The structure of the Neural Network calculating Q values of each state.
     """
 
-    def __init__(self,  num_actions, hidden_layer_size=2000):
+    def __init__(self,  num_actions, hidden_layer_size=1500):
         super(Net, self).__init__()
         self.input_state = INPUT_SIZE  # the dimension of state space
         self.num_actions = num_actions  # the dimension of action space
@@ -85,7 +85,7 @@ class Net(nn.Module):
 
 class Agent:
     def __init__(
-        self, env, epsilon = 0.5, learning_rate=0.01, GAMMA=0.99, batch_size=32, capacity=2000
+        self, env, epsilon = 0.05, learning_rate=0.002, GAMMA=0.99, batch_size=50, capacity=2000
     ):
         """
         The agent learning how to control the action of the cart pole.
@@ -223,10 +223,6 @@ def train(env, episode=200):
 
 
     agent = Agent(env)
-    # agent.target_net.eval()
-    # # 从保存的文件中加载预训练的目标网络参数
-    # agent.target_net.load_state_dict(torch.load("./Tables/DQN-3AAA.pt", map_location = device))
-
 
     rewards = []
     for i_episode in range(episode):
@@ -263,7 +259,7 @@ def train(env, episode=200):
     total_rewards.append(rewards)
 
 
-def test(env):
+def test(env, model):
     """
     Test the agent on the given environment.
     Paramenters:
@@ -272,11 +268,9 @@ def test(env):
         None (Don't need to return anything)
     """
     rewards = []
-    # 创建一个新的智能体实例
     testing_agent = Agent(env)
     testing_agent.target_net.eval()
-    # 从保存的文件中加载预训练的目标网络参数
-    testing_agent.target_net.load_state_dict(torch.load("./Tables/DQN.pt", map_location = device))
+    testing_agent.target_net.load_state_dict(torch.load(model, map_location = device))
     start_tick = K_LINE_NUM
     profit_rate = []
     profit_rate_tick = []
@@ -288,17 +282,13 @@ def test(env):
         while True:
             tempstate = state
             
-            # 将状态转换为浮点张量，并移至 GPU（如果可用）
             Q = testing_agent.target_net(torch.FloatTensor(tempstate).to(device)).squeeze(0).detach()
-            # 选择具有最大 Q 值的动作
             action = int(torch.argmax(Q).cpu().numpy())
-            # 在环境中执行动作，获得下一状态、奖励、是否结束以及额外信息
             # print(action)
             next_state, _, done, info = env.step(action)
 
             # print(info)
             t+=1
-            # 如果回合结束，打印信息并退出循环
             if done:
                 # env.render()
                 profit_rate.append(env.get_profit_rate())
@@ -351,7 +341,7 @@ if __name__ == "__main__":
     # for i in range(1):
     #     time0 = time.time()
     #     print(f"#{i + 1} training progress")
-    #     train(env, 150)
+    #     train(env, 200)
     #     time1 = time.time()
     #     print(f"Training time: {time1 - time0} seconds")
     #     print ("Win rate: ", env.win_count ,"/", env.win_count + env.dead_count, f"({env.get_win_rate()})")
@@ -361,6 +351,6 @@ if __name__ == "__main__":
 
 
     # testing section:
-    test(env)
+    test(env, "./Tables/DQN_GG.pt")
     env.close()
 
