@@ -20,6 +20,9 @@ If you want to test different months, please modify
 ```
 env = gym.make('futures3-v0')  # Test in March
 ```
+```
+env = gym.make('futures1-v0')  # Test in January
+```
 ## Data source
 
 We get the data from [Binance API](https://github.com/binance/binance-public-data)
