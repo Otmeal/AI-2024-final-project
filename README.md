@@ -12,9 +12,12 @@ pip install -r requirements.txt
 Note that for the gym-futures-trading package, since it is located at a local path, you may need to install it manually or specify the exact local path.
 
 ## Test model
+In `DQN.py`,
 If you want to test the trained model, please remember to comment out the training section.
-If you want to test different months, please modify env = gym.make('futures3-v0').
-
+If you want to test different months, please modify
+```
+env = gym.make('futures3-v0')
+```
 ## Data source
 
 We get the data from [Binance API](https://github.com/binance/binance-public-data)
